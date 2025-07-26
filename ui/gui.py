@@ -12,10 +12,13 @@ from core import (
 # Theme constants
 BG_COLOR = "#141517"
 LABEL_FG_COLOR = "#EEE"
-FONT = ("Arial", 12)
+FONT = ("Consolas", 12)
+PASS_GEN_FONT = ("Consolas", 10)
+TITLE_FONT = ("Consolas", 16, "bold")
 BTN_COLOR = "#2a2a2a"
 BTN_ACTIVE = "#333"
 ENTRY_BG = "#1e1e1e"
+
 
 class PasswordManagerUI(tk.Tk):
     def __init__(self):
@@ -23,7 +26,7 @@ class PasswordManagerUI(tk.Tk):
 
         self.title("Password Manager")
         self.geometry("1280x720")
-        self.minsize(800,400)
+        self.minsize(800, 400)
         self.configure(bg=BG_COLOR)
 
         self.fernet = None
@@ -53,7 +56,7 @@ class PasswordManagerUI(tk.Tk):
             text="Enter Master Password",
             fg=LABEL_FG_COLOR,
             bg=BG_COLOR,
-            font=("Arial", 16, "bold")
+            font=TITLE_FONT
         )
         title.pack(pady=20)
 
@@ -68,6 +71,7 @@ class PasswordManagerUI(tk.Tk):
             highlightthickness=0,
             relief=tk.FLAT
         )
+        self.master_entry.bind("<Return>", lambda event: self.try_unlock())
         self.master_entry.pack(pady=10)
         self.master_entry.focus()
 
@@ -79,6 +83,7 @@ class PasswordManagerUI(tk.Tk):
             activebackground=BTN_ACTIVE,
             fg=LABEL_FG_COLOR,
             font=FONT,
+            border=0,
             padx=10,
             pady=5
         )
@@ -88,7 +93,8 @@ class PasswordManagerUI(tk.Tk):
         password = self.master_entry.get()
 
         if not password:
-            messagebox.showwarning("Input Error", "Please enter the master password.")
+            messagebox.showwarning(
+                "Input Error", "Please enter the master password.")
             return
 
         if not verify_master_password(password):
@@ -97,7 +103,8 @@ class PasswordManagerUI(tk.Tk):
                 self.fernet = get_fernet(password)
                 self.data = {}
                 save_data(self.fernet, self.data)
-                messagebox.showinfo("Vault Created", "Master password set and vault initialized.")
+                messagebox.showinfo(
+                    "Vault Created", "Master password set and vault initialized.")
                 self.show_main_app()
             else:
                 return
@@ -152,96 +159,153 @@ class PasswordManagerUI(tk.Tk):
     def show_add_account(self):
         self.clear_main_content()
 
-        tk.Label(self.main_content, text="Add Account", fg=LABEL_FG_COLOR, bg=BG_COLOR, font=("Arial", 14, "bold")).pack(pady=10)
+        tk.Label(self.main_content, text="Add Account",
+                 fg=LABEL_FG_COLOR, bg=BG_COLOR, font=TITLE_FONT).pack(pady=10)
 
         # Account Name
-        tk.Label(self.main_content, text="Account Name:", fg=LABEL_FG_COLOR, bg=BG_COLOR, font=FONT).pack(anchor="w", padx=20)
+        tk.Label(self.main_content, text="Account Name:", fg=LABEL_FG_COLOR,
+                 bg=BG_COLOR, font=FONT).pack(anchor="w", padx=20)
         self.add_account_name_var = tk.StringVar()
-        tk.Entry(self.main_content, textvariable=self.add_account_name_var, bg=ENTRY_BG, fg=LABEL_FG_COLOR, font=FONT).pack(fill="x", padx=20, pady=5)
+        tk.Entry(self.main_content, textvariable=self.add_account_name_var,
+                 bg=ENTRY_BG, fg=LABEL_FG_COLOR, font=FONT).pack(fill="x", padx=20, pady=5)
 
         # Email
-        tk.Label(self.main_content, text="Email:", fg=LABEL_FG_COLOR, bg=BG_COLOR, font=FONT).pack(anchor="w", padx=20)
+        tk.Label(self.main_content, text="Email:", fg=LABEL_FG_COLOR,
+                 bg=BG_COLOR, font=FONT).pack(anchor="w", padx=20)
         self.add_email_var = tk.StringVar()
-        tk.Entry(self.main_content, textvariable=self.add_email_var, bg=ENTRY_BG, fg=LABEL_FG_COLOR, font=FONT).pack(fill="x", padx=20, pady=5)
+        tk.Entry(self.main_content, textvariable=self.add_email_var, bg=ENTRY_BG,
+                 fg=LABEL_FG_COLOR, font=FONT).pack(fill="x", padx=20, pady=5)
 
         # Site URL
-        tk.Label(self.main_content, text="Site URL:", fg=LABEL_FG_COLOR, bg=BG_COLOR, font=FONT).pack(anchor="w", padx=20)
+        tk.Label(self.main_content, text="Site URL:", fg=LABEL_FG_COLOR,
+                 bg=BG_COLOR, font=FONT).pack(anchor="w", padx=20)
         self.add_site_url_var = tk.StringVar()
-        tk.Entry(self.main_content, textvariable=self.add_site_url_var, bg=ENTRY_BG, fg=LABEL_FG_COLOR, font=FONT).pack(fill="x", padx=20, pady=5)
+        tk.Entry(self.main_content, textvariable=self.add_site_url_var, bg=ENTRY_BG,
+                 fg=LABEL_FG_COLOR, font=FONT).pack(fill="x", padx=20, pady=5)
 
         # Description
-        tk.Label(self.main_content, text="Description:", fg=LABEL_FG_COLOR, bg=BG_COLOR, font=FONT).pack(anchor="w", padx=20)
+        tk.Label(self.main_content, text="Description:", fg=LABEL_FG_COLOR,
+                 bg=BG_COLOR, font=FONT).pack(anchor="w", padx=20)
         self.add_description_var = tk.StringVar()
-        tk.Entry(self.main_content, textvariable=self.add_description_var, bg=ENTRY_BG, fg=LABEL_FG_COLOR, font=FONT).pack(fill="x", padx=20, pady=5)
+        tk.Entry(self.main_content, textvariable=self.add_description_var,
+                 bg=ENTRY_BG, fg=LABEL_FG_COLOR, font=FONT).pack(fill="x", padx=20, pady=5)
 
-        # Password label and Entry (visible text)
-        tk.Label(self.main_content, text="Password:", fg=LABEL_FG_COLOR, bg=BG_COLOR, font=FONT).pack(anchor="w", padx=20)
+        # Password Field
+        tk.Label(self.main_content, text="Password:", fg=LABEL_FG_COLOR,
+                 bg=BG_COLOR, font=FONT).pack(anchor="w", padx=20)
         self.add_password_var = tk.StringVar()
-        self.add_password_entry = tk.Entry(self.main_content, textvariable=self.add_password_var, bg=ENTRY_BG, fg=LABEL_FG_COLOR, font=FONT)
+        self.add_password_entry = tk.Entry(
+            self.main_content, textvariable=self.add_password_var, bg=ENTRY_BG, fg=LABEL_FG_COLOR, font=FONT)
         self.add_password_entry.pack(fill="x", padx=20, pady=5)
 
-        # Password generator UI like in generate_password section
-        pw_gen_frame = tk.Frame(self.main_content, bg=BG_COLOR)
-        pw_gen_frame.pack(pady=10, padx=20, fill="x")
+        # Password Generator Quick Options
+        length_frame = tk.Frame(self.main_content, bg=BG_COLOR)
+        length_frame.pack(pady=2)
 
-        # Length input
-        tk.Label(pw_gen_frame, text="Length (8 - 256):", bg=BG_COLOR, fg=LABEL_FG_COLOR, font=FONT).pack(side="left")
-        self.add_length_var = tk.StringVar(value="25")
-        length_spinbox = tk.Spinbox(
-            pw_gen_frame,
+        tk.Label(length_frame, text="Length (8 - 256):", bg=BG_COLOR,
+                 fg=LABEL_FG_COLOR, font=PASS_GEN_FONT).pack(side="left")
+
+        self.length_var = tk.StringVar(value="25")
+        tk.Spinbox(
+            length_frame,
             from_=8,
             to=256,
-            textvariable=self.add_length_var,
-            width=5,
+            textvariable=self.length_var,
+            width=6,
+            font=PASS_GEN_FONT,
             bg=ENTRY_BG,
             fg=LABEL_FG_COLOR,
             insertbackground=LABEL_FG_COLOR,
             relief=tk.FLAT,
             justify="center"
-        )
-        length_spinbox.pack(side="left", padx=10)
+        ).pack(side="left", padx=10)
 
-        # Symbols and Numbers checkboxes
-        self.add_include_symbols = tk.BooleanVar(value=True)
-        self.add_include_numbers = tk.BooleanVar(value=True)
+        tk.Label(length_frame, text="recommended 25+", bg=BG_COLOR,
+                 fg=LABEL_FG_COLOR, font=PASS_GEN_FONT).pack(side="left")
 
-        sym_cb = tk.Checkbutton(self.main_content, text="Include Symbols", variable=self.add_include_symbols, bg=BG_COLOR, fg=LABEL_FG_COLOR, selectcolor=BG_COLOR, activebackground=BG_COLOR)
-        sym_cb.pack(anchor="w", padx=20)
-        num_cb = tk.Checkbutton(self.main_content, text="Include Numbers", variable=self.add_include_numbers, bg=BG_COLOR, fg=LABEL_FG_COLOR, selectcolor=BG_COLOR, activebackground=BG_COLOR)
-        num_cb.pack(anchor="w", padx=20)
+        self.include_small_letters = tk.BooleanVar(value=True)
+        self.include_big_letters = tk.BooleanVar(value=True)
+        self.include_numbers = tk.BooleanVar(value=True)
+        self.include_symbols = tk.BooleanVar(value=True)
 
-        # Buttons for generate and copy
-        btn_frame = tk.Frame(self.main_content, bg=BG_COLOR)
-        btn_frame.pack(pady=10, padx=20)
+        check_box_frame = tk.Frame(self.main_content, bg=BG_COLOR)
+        check_box_frame.pack(pady=2)
 
-        def generate_password():
+        tk.Checkbutton(check_box_frame,
+                       text="Include small letters",
+                       variable=self.include_small_letters,
+                       bg=BG_COLOR,
+                       font=PASS_GEN_FONT,
+                       fg=LABEL_FG_COLOR,
+                       selectcolor=BG_COLOR,
+                       activebackground=BG_COLOR
+                       ).pack(side="left")
+
+        tk.Checkbutton(check_box_frame,
+                       text="Include BIG LETTERS",
+                       variable=self.include_big_letters,
+                       bg=BG_COLOR,
+                       fg=LABEL_FG_COLOR,
+                       font=PASS_GEN_FONT,
+                       selectcolor=BG_COLOR,
+                       activebackground=BG_COLOR
+                       ).pack(side="left")
+
+        tk.Checkbutton(check_box_frame,
+                       text="Include Numbers",
+                       variable=self.include_numbers,
+                       bg=BG_COLOR,
+                       fg=LABEL_FG_COLOR,
+                       font=PASS_GEN_FONT,
+                       selectcolor=BG_COLOR,
+                       activebackground=BG_COLOR
+                       ).pack(side="left")
+
+        symbols_frame = tk.Frame(self.main_content, bg=BG_COLOR)
+        symbols_frame.pack(pady=2)
+
+        tk.Checkbutton(symbols_frame,
+                       text="Include Symbols",
+                       variable=self.include_symbols,
+                       bg=BG_COLOR,
+                       fg=LABEL_FG_COLOR,
+                       font=PASS_GEN_FONT,
+                       selectcolor=BG_COLOR,
+                       activebackground=BG_COLOR
+                       ).pack(side="left")
+
+        self.custom_symbols_var = tk.StringVar()
+        tk.Entry(symbols_frame,
+                 textvariable=self.custom_symbols_var,
+                 bg=ENTRY_BG,
+                 fg=LABEL_FG_COLOR,
+                 font=PASS_GEN_FONT,
+                 width=36,
+                 border=0,
+                 justify="center"
+                 ).pack(pady=2)
+        self.custom_symbols_var.set('~`!@#$%^&*()_-+={[}]|\\:;"\'<,>.?/')
+
+        def generate_and_set_password():
             try:
-                length = int(self.add_length_var.get())
+                length = int(self.length_var.get())
                 if length < 8 or length > 256:
                     raise ValueError("Length must be between 8 and 256")
             except ValueError:
-                messagebox.showwarning("Invalid Input", "Please enter a number between 8 and 256.")
+                messagebox.showwarning(
+                    "Invalid Input", "Please enter a number between 8 and 256.")
                 return
 
-            password = gen_pass(length, self.add_include_symbols.get(), self.add_include_numbers.get())
+            use_symbols = self.include_symbols.get()
+            use_numbers = self.include_numbers.get()
+            use_big_letters = self.include_big_letters.get()
+            use_small_letters = self.include_small_letters.get()
+            custom_symbols = self.custom_symbols_var.get().strip() or None
+
+            password = gen_pass(length, use_symbols, use_numbers,
+                                custom_symbols, use_big_letters, use_small_letters)
             self.add_password_var.set(password)
 
-        def copy_password():
-            pw = self.add_password_var.get()
-            if not pw:
-                messagebox.showwarning("No Password", "Please generate or enter a password first.")
-                return
-            self.clipboard_clear()
-            self.clipboard_append(pw)
-            messagebox.showinfo("Copied", "Password copied to clipboard!")
-
-        gen_btn = tk.Button(btn_frame, text="Generate Password", command=generate_password, bg=BTN_COLOR, fg=LABEL_FG_COLOR, activebackground=BTN_ACTIVE, font=FONT)
-        gen_btn.pack(side="left", padx=10)
-
-        copy_btn = tk.Button(btn_frame, text="Copy Password", command=copy_password, bg=BTN_COLOR, fg=LABEL_FG_COLOR, activebackground=BTN_ACTIVE, font=FONT)
-        copy_btn.pack(side="left", padx=10)
-
-        # Save button
         def save_account():
             name = self.add_account_name_var.get().strip()
             email = self.add_email_var.get().strip()
@@ -250,7 +314,8 @@ class PasswordManagerUI(tk.Tk):
             password = self.add_password_var.get().strip()
 
             if not name or not email or not password:
-                messagebox.showwarning("Input Error", "Account Name, Email, and Password are required.")
+                messagebox.showwarning(
+                    "Input Error", "Account Name, Email, and Password are required.")
                 return
 
             if name in self.data:
@@ -267,29 +332,41 @@ class PasswordManagerUI(tk.Tk):
             messagebox.showinfo("Success", f"Account '{name}' saved.")
             self.show_main_app()
 
-        tk.Button(self.main_content, text="Save Account", command=save_account, bg=BTN_COLOR, fg=LABEL_FG_COLOR, activebackground=BTN_ACTIVE, font=FONT).pack(pady=15)
+        btn_frame = tk.Frame(self.main_content, bg=BG_COLOR)
+        btn_frame.pack(pady=10)
+
+        tk.Button(btn_frame, text="Generate Password", command=generate_and_set_password, bg=BTN_COLOR, fg=LABEL_FG_COLOR,
+                  activebackground=BTN_ACTIVE, font=FONT, border=0, padx=10, pady=5).pack(side="left", padx=(0, 10))
+        tk.Button(btn_frame, text="Save Account", command=save_account, bg=BTN_COLOR, fg=LABEL_FG_COLOR,
+                  activebackground=BTN_ACTIVE, font=FONT, border=0, padx=10, pady=5).pack(side="left")
 
     def show_manage_account(self):
         self.clear_main_content()
 
-        tk.Label(self.main_content, text="Manage Accounts", fg=LABEL_FG_COLOR, bg=BG_COLOR, font=("Arial", 14, "bold")).pack(pady=10)
+        tk.Label(self.main_content, text="Manage Account",
+                 fg=LABEL_FG_COLOR, bg=BG_COLOR, font=TITLE_FONT).pack(pady=10)
 
-        # Search input
-        tk.Label(self.main_content, text="Search Account:", fg=LABEL_FG_COLOR, bg=BG_COLOR, font=FONT).pack(anchor="w", padx=20)
+        tk.Label(self.main_content, text="Search Account:", fg=LABEL_FG_COLOR,
+                 bg=BG_COLOR, font=FONT).pack(anchor="w", padx=20)
         search_var = tk.StringVar()
-        search_entry = tk.Entry(self.main_content, textvariable=search_var, bg=ENTRY_BG, fg=LABEL_FG_COLOR, font=FONT)
-        search_entry.pack(padx=20, pady=(0,10), fill="x")
+        search_entry = tk.Entry(
+            self.main_content, textvariable=search_var, bg=ENTRY_BG, fg=LABEL_FG_COLOR, font=FONT)
+        search_entry.pack(padx=20, pady=(0, 10), fill="x")
 
         # Listbox for search results
-        listbox = tk.Listbox(self.main_content, bg=ENTRY_BG, fg=LABEL_FG_COLOR, font=FONT, height=6)
-        listbox.pack(padx=20, pady=(0,10), fill="x")
+        listbox = tk.Listbox(self.main_content, bg=ENTRY_BG,
+                             fg=LABEL_FG_COLOR, font=FONT, height=6)
+        listbox.pack(padx=20, pady=(0, 10), fill="x")
 
         # Editable fields
         entry_widgets = {}
-        fields = ["Account Name", "Email", "Site URL", "Description", "Password"]
+        fields = ["Account Name", "Email",
+                  "Site URL", "Description", "Password"]
         for field in fields:
-            tk.Label(self.main_content, text=field + ":", fg=LABEL_FG_COLOR, bg=BG_COLOR, font=FONT).pack(anchor="w", padx=20)
-            entry = tk.Entry(self.main_content, bg=ENTRY_BG, fg=LABEL_FG_COLOR, font=FONT)
+            tk.Label(self.main_content, text=field + ":", fg=LABEL_FG_COLOR,
+                     bg=BG_COLOR, font=FONT).pack(anchor="w", padx=20)
+            entry = tk.Entry(self.main_content, bg=ENTRY_BG,
+                             fg=LABEL_FG_COLOR, font=FONT)
             entry.pack(padx=20, pady=2, fill="x")
             entry_widgets[field] = entry
 
@@ -304,7 +381,8 @@ class PasswordManagerUI(tk.Tk):
             entry_widgets["Site URL"].delete(0, tk.END)
             entry_widgets["Site URL"].insert(0, account.get("site_url", ""))
             entry_widgets["Description"].delete(0, tk.END)
-            entry_widgets["Description"].insert(0, account.get("description", ""))
+            entry_widgets["Description"].insert(
+                0, account.get("description", ""))
             entry_widgets["Password"].delete(0, tk.END)
             entry_widgets["Password"].insert(0, account.get("password", ""))
 
@@ -316,7 +394,7 @@ class PasswordManagerUI(tk.Tk):
                     query in info.get("email", "").lower() or
                     query in info.get("site_url", "").lower() or
                     query in info.get("description", "").lower() or
-                    query in info.get("password", "").lower()):
+                        query in info.get("password", "").lower()):
                     listbox.insert(tk.END, name)
 
         def on_select(event):
@@ -326,14 +404,17 @@ class PasswordManagerUI(tk.Tk):
                 update_fields(name)
 
         def save_changes():
-            original_name = listbox.get(listbox.curselection()) if listbox.curselection() else None
+            original_name = listbox.get(
+                listbox.curselection()) if listbox.curselection() else None
             if not original_name:
-                messagebox.showwarning("No selection", "Please select an account to edit.")
+                messagebox.showwarning(
+                    "No selection", "Please select an account to edit.")
                 return
 
             new_name = entry_widgets["Account Name"].get().strip()
             if not new_name:
-                messagebox.showwarning("Missing Info", "Account name is required.")
+                messagebox.showwarning(
+                    "Missing Info", "Account name is required.")
                 return
 
             new_data = {
@@ -353,9 +434,11 @@ class PasswordManagerUI(tk.Tk):
             self.show_manage_account()
 
         def delete_selected():
-            name = listbox.get(listbox.curselection()) if listbox.curselection() else None
+            name = listbox.get(listbox.curselection()
+                               ) if listbox.curselection() else None
             if not name:
-                messagebox.showwarning("No selection", "Please select an account to delete.")
+                messagebox.showwarning(
+                    "No selection", "Please select an account to delete.")
                 return
             if messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete '{name}'?"):
                 self.data.pop(name, None)
@@ -366,8 +449,10 @@ class PasswordManagerUI(tk.Tk):
         # Buttons
         btn_frame = tk.Frame(self.main_content, bg=BG_COLOR)
         btn_frame.pack(pady=10)
-        tk.Button(btn_frame, text="Save Changes", command=save_changes, bg=BTN_COLOR, fg=LABEL_FG_COLOR, font=FONT).pack(side="left", padx=10)
-        tk.Button(btn_frame, text="Delete Account", command=delete_selected, bg="red", fg="white", font=FONT).pack(side="left", padx=10)
+        tk.Button(btn_frame, text="Save Changes", command=save_changes, bg=BTN_COLOR,
+                  fg=LABEL_FG_COLOR, font=FONT, border=0).pack(side="left", padx=10)
+        tk.Button(btn_frame, text="Delete Account", command=delete_selected,
+                  bg="red", fg="white", font=FONT, border=0).pack(side="left", padx=10)
 
         # Bind events
         search_var.trace_add("write", filter_accounts)
@@ -379,27 +464,36 @@ class PasswordManagerUI(tk.Tk):
     def show_search_account(self):
         self.clear_main_content()
 
+        tk.Label(self.main_content, text="Search account",
+                 fg=LABEL_FG_COLOR, bg=BG_COLOR, font=TITLE_FONT).pack(pady=10)
+
         # Layout: split into left and right frames inside main_content
         left_frame = tk.Frame(self.main_content, bg=BTN_COLOR, width=260)
         left_frame.pack(side="left", fill="y", padx=(20, 10), pady=20)
         left_frame.pack_propagate(False)  # prevent shrinking
 
         right_frame = tk.Frame(self.main_content, bg=BG_COLOR)
-        right_frame.pack(side="right", fill="both", expand=True, padx=(10, 20), pady=20)
+        right_frame.pack(side="right", fill="both",
+                         expand=True, padx=(10, 20), pady=20)
 
         # Search input on top of left frame
-        tk.Label(left_frame, text="Search Accounts:", fg=LABEL_FG_COLOR, bg=BTN_COLOR, font=FONT).pack(anchor="w", pady=(0, 5), padx=5)
+        tk.Label(left_frame, text="Search Accounts:", fg=LABEL_FG_COLOR,
+                 bg=BTN_COLOR, font=FONT).pack(anchor="w", pady=(0, 5), padx=5)
         self.search_account_var = tk.StringVar()
-        search_entry = tk.Entry(left_frame, textvariable=self.search_account_var, bg=ENTRY_BG, fg=LABEL_FG_COLOR, font=FONT)
-        search_entry.pack(fill="x", padx=5, pady=(0,10))
+        search_entry = tk.Entry(
+            left_frame, textvariable=self.search_account_var, bg=ENTRY_BG, fg=LABEL_FG_COLOR, font=FONT)
+        search_entry.pack(fill="x", padx=5, pady=(0, 10))
         search_entry.focus()
 
         # Listbox to show filtered account names
-        self.search_results_listbox = tk.Listbox(left_frame, bg=ENTRY_BG, fg=LABEL_FG_COLOR, font=FONT, activestyle='none', selectbackground=BTN_ACTIVE, highlightthickness=0)
-        self.search_results_listbox.pack(fill="both", expand=True, padx=5, pady=5)
+        self.search_results_listbox = tk.Listbox(
+            left_frame, bg=ENTRY_BG, fg=LABEL_FG_COLOR, font=FONT, activestyle='none', selectbackground=BTN_ACTIVE, highlightthickness=0)
+        self.search_results_listbox.pack(
+            fill="both", expand=True, padx=5, pady=5)
 
         # Scrollbar for listbox
-        scrollbar = tk.Scrollbar(self.search_results_listbox, orient="vertical")
+        scrollbar = tk.Scrollbar(
+            self.search_results_listbox, orient="vertical")
         scrollbar.pack(side="right", fill="y")
         self.search_results_listbox.config(yscrollcommand=scrollbar.set)
         scrollbar.config(command=self.search_results_listbox.yview)
@@ -422,11 +516,15 @@ class PasswordManagerUI(tk.Tk):
 
         # Account details labels on right frame
         self.detail_widgets = {}
-        fields = ["Account Name", "Email", "Site URL", "Description", "Password"]
+        fields = ["Account Name", "Email",
+                  "Site URL", "Description", "Password"]
         for field in fields:
-            label = tk.Label(right_frame, text=field + ":", fg=LABEL_FG_COLOR, bg=BG_COLOR, font=("Arial", 12, "bold"))
-            label.pack(anchor="nw", pady=(10 if field == "Account Name" else 2, 2))
-            text = tk.Text(right_frame, height=1 if field != "Description" else 4, bg=ENTRY_BG, fg=LABEL_FG_COLOR, font=FONT, relief=tk.FLAT, wrap="word")
+            label = tk.Label(right_frame, text=field + ":",
+                             fg=LABEL_FG_COLOR, bg=BG_COLOR, font=FONT)
+            label.pack(anchor="nw", pady=(
+                10 if field == "Account Name" else 2, 2))
+            text = tk.Text(right_frame, height=1 if field != "Description" else 4,
+                           bg=ENTRY_BG, fg=LABEL_FG_COLOR, font=FONT, relief=tk.FLAT, wrap="word")
             text.pack(fill="x" if field != "Description" else "both", pady=2)
             # Don't disable the widget, keep it normal but block edits
             make_text_readonly(text)
@@ -452,30 +550,28 @@ class PasswordManagerUI(tk.Tk):
                 self.detail_widgets[field].insert(tk.END, account.get(key, ""))
 
             for field in self.detail_widgets.values():
-                field.config(state="normal")  # Keep normal so user can copy text
+                # Keep normal so user can copy text
+                field.config(state="normal")
 
         def filter_accounts(*args):
             query = self.search_account_var.get().lower()
             self.search_results_listbox.delete(0, tk.END)
 
-            if not query:
-                return
-
-            # Filter accounts on all fields
+            # No early return here — we want to show all accounts if query is empty
             filtered = []
             for name, info in self.data.items():
-                # check all relevant fields for query
-                if (query in name.lower() or
+                if (not query or
+                    query in name.lower() or
                     query in info.get("email", "").lower() or
                     query in info.get("description", "").lower() or
                     query in info.get("site_url", "").lower() or
-                    query in info.get("password", "").lower()):
+                        query in info.get("password", "").lower()):
                     filtered.append(name)
 
             for account_name in filtered:
                 self.search_results_listbox.insert(tk.END, account_name)
 
-            # Clear details pane if no matches or selection changes
+            # Optionally clear detail widgets if nothing is selected
             if not filtered:
                 update_detail_widgets(None)
 
@@ -494,6 +590,7 @@ class PasswordManagerUI(tk.Tk):
 
         # Initially clear detail pane
         update_detail_widgets(None)
+        filter_accounts()
 
     def show_generate_password(self):
         self.clear_main_content()
@@ -503,72 +600,142 @@ class PasswordManagerUI(tk.Tk):
             text="🔐 Generate Password",
             fg=LABEL_FG_COLOR,
             bg=BG_COLOR,
-            font=("Arial", 14, "bold")
+            font=TITLE_FONT
         )
         title.pack(pady=20)
 
-        # Length Entry
         length_frame = tk.Frame(self.main_content, bg=BG_COLOR)
-        length_frame.pack(pady=5)
-        tk.Label(length_frame, text="Length (8 - 256):", bg=BG_COLOR, fg=LABEL_FG_COLOR, font=FONT).pack(side="left")
+        length_frame.pack(pady=2)
+
+        tk.Label(length_frame, text="Length (8 - 256):", bg=BG_COLOR,
+                 fg=LABEL_FG_COLOR, font=PASS_GEN_FONT).pack(side="left")
 
         self.length_var = tk.StringVar(value="25")
-        length_spinbox = tk.Spinbox(
+        tk.Spinbox(
             length_frame,
             from_=8,
             to=256,
             textvariable=self.length_var,
-            width=5,
+            width=6,
+            font=PASS_GEN_FONT,
             bg=ENTRY_BG,
             fg=LABEL_FG_COLOR,
             insertbackground=LABEL_FG_COLOR,
             relief=tk.FLAT,
             justify="center"
-        )
-        length_spinbox.pack(side="left", padx=10)
+        ).pack(side="left", padx=10)
 
-        # Checkboxes
-        self.include_symbols = tk.BooleanVar(value=True)
+        tk.Label(length_frame, text="recommended 25+", bg=BG_COLOR,
+                 fg=LABEL_FG_COLOR, font=PASS_GEN_FONT).pack(side="left")
+
+        self.include_small_letters = tk.BooleanVar(value=True)
+        self.include_big_letters = tk.BooleanVar(value=True)
         self.include_numbers = tk.BooleanVar(value=True)
+        self.include_symbols = tk.BooleanVar(value=True)
 
-        tk.Checkbutton(self.main_content, text="Include Symbols", variable=self.include_symbols, bg=BG_COLOR, fg=LABEL_FG_COLOR, selectcolor=BG_COLOR, activebackground=BG_COLOR).pack(pady=2)
-        tk.Checkbutton(self.main_content, text="Include Numbers", variable=self.include_numbers, bg=BG_COLOR, fg=LABEL_FG_COLOR, selectcolor=BG_COLOR, activebackground=BG_COLOR).pack(pady=2)
+        check_box_frame = tk.Frame(self.main_content, bg=BG_COLOR)
+        check_box_frame.pack(pady=2)
 
-        # Result field
-        self.result_box = tk.Text(
+        tk.Checkbutton(check_box_frame,
+                       text="Include small letters",
+                       variable=self.include_small_letters,
+                       bg=BG_COLOR,
+                       font=PASS_GEN_FONT,
+                       fg=LABEL_FG_COLOR,
+                       selectcolor=BG_COLOR,
+                       activebackground=BG_COLOR
+                       ).pack(side="left")
+
+        tk.Checkbutton(check_box_frame,
+                       text="Include BIG LETTERS",
+                       variable=self.include_big_letters,
+                       bg=BG_COLOR,
+                       fg=LABEL_FG_COLOR,
+                       font=PASS_GEN_FONT,
+                       selectcolor=BG_COLOR,
+                       activebackground=BG_COLOR
+                       ).pack(side="left")
+
+        tk.Checkbutton(check_box_frame,
+                       text="Include Numbers",
+                       variable=self.include_numbers,
+                       bg=BG_COLOR,
+                       fg=LABEL_FG_COLOR,
+                       font=PASS_GEN_FONT,
+                       selectcolor=BG_COLOR,
+                       activebackground=BG_COLOR
+                       ).pack(side="left")
+
+        symbols_frame = tk.Frame(self.main_content, bg=BG_COLOR)
+        symbols_frame.pack(pady=2)
+
+        tk.Checkbutton(symbols_frame,
+                       text="Include Symbols",
+                       variable=self.include_symbols,
+                       bg=BG_COLOR,
+                       fg=LABEL_FG_COLOR,
+                       font=PASS_GEN_FONT,
+                       selectcolor=BG_COLOR,
+                       activebackground=BG_COLOR
+                       ).pack(side="left")
+
+        self.custom_symbols_var = tk.StringVar()
+        tk.Entry(symbols_frame,
+                 textvariable=self.custom_symbols_var,
+                 bg=ENTRY_BG,
+                 fg=LABEL_FG_COLOR,
+                 font=PASS_GEN_FONT,
+                 width=36,
+                 border=0,
+                 justify="center"
+                 ).pack(pady=2)
+        self.custom_symbols_var.set('~`!@#$%^&*()_-+={[}]|\\:;"\'<,>.?/')
+
+        tk.Label(
             self.main_content,
-            width=64,
-            height=1,
+            text="Generated password:",
+            fg=LABEL_FG_COLOR,
+            bg=BG_COLOR,
+            font=FONT
+        ).pack(pady=10)
+
+        self.result_var = tk.StringVar()
+        self.result_label = tk.Label(
+            self.main_content,
+            textvariable=self.result_var,
             font=FONT,
             bg=ENTRY_BG,
             fg=LABEL_FG_COLOR,
-            wrap="word",
-            relief=tk.FLAT
-        )
-        self.result_box.config(state="disabled")
-        self.result_box.pack(pady=10)
+            wraplength=500,
+            justify="left",
+            height=7,
+            width=64,
+        ).pack(pady=2)
 
-        # Generate button
-        tk.Button(
-            self.main_content,
-            text="Generate",
-            command=self.generate_password_button,
-            bg=BTN_COLOR,
-            fg=LABEL_FG_COLOR,
-            activebackground=BTN_ACTIVE,
-            font=FONT
-        ).pack(pady=5)
+        btn_frame = tk.Frame(self.main_content, bg=BG_COLOR)
+        btn_frame.pack(pady=10)
 
-        # Copy button
-        tk.Button(
-            self.main_content,
-            text="Copy Password",
-            command=self.copy_password_to_clipboard,
-            bg=BTN_COLOR,
-            fg=LABEL_FG_COLOR,
-            activebackground=BTN_ACTIVE,
-            font=FONT
-        ).pack(pady=5)
+        tk.Button(btn_frame,
+                  text="Generate Password",
+                  command=self.generate_password_button,
+                  bg=BTN_COLOR,
+                  fg=LABEL_FG_COLOR,
+                  activebackground=BTN_ACTIVE,
+                  font=FONT,
+                  border=0,
+                  padx=10,
+                  pady=5).pack(side="left", padx=(0, 10))
+
+        tk.Button(btn_frame,
+                  text="Copy Password",
+                  command=self.copy_password_to_clipboard,
+                  bg=BTN_COLOR,
+                  fg=LABEL_FG_COLOR,
+                  activebackground=BTN_ACTIVE,
+                  font=FONT,
+                  border=0,
+                  padx=10,
+                  pady=5).pack(side="left")
 
     def generate_password_button(self):
         try:
@@ -576,32 +743,30 @@ class PasswordManagerUI(tk.Tk):
             if length < 8 or length > 256:
                 raise ValueError("Length must be between 8 and 256")
         except ValueError:
-            messagebox.showwarning("Invalid Input", "Please enter a number between 8 and 256.")
+            messagebox.showwarning(
+                "Invalid Input", "Please enter a number between 8 and 256.")
             return
 
         use_symbols = self.include_symbols.get()
         use_numbers = self.include_numbers.get()
+        use_big_letters = self.include_big_letters.get()
+        use_small_letters = self.include_small_letters.get()
+        custom_symbols = self.custom_symbols_var.get().strip() or None
 
-        password = gen_pass(length, use_symbols, use_numbers)
+        password = gen_pass(length, use_symbols, use_numbers,
+                            custom_symbols, use_big_letters, use_small_letters)
 
-        chars_per_line = 64
-        num_lines = (len(password) // chars_per_line)
-        max_lines = 10
-        height = min(num_lines, max_lines)
-
-        self.result_box.config(state="normal", height=height)
-        self.result_box.delete("1.0", tk.END)
-        self.result_box.insert(tk.END, password)
-        self.result_box.config(state="disabled")
+        self.result_var.set(password)
 
     def copy_password_to_clipboard(self):
-        password = self.result_box.get("1.0", "end-1c").strip()
+        password = self.result_var.get().strip()
         if not password:
-            messagebox.showwarning("No Password", "Please generate a password first.")
+            messagebox.showwarning(
+                "No Password", "Please generate a password first.")
             return
         self.clipboard_clear()
         self.clipboard_append(password)
-    
+
     def clear_window(self):
         for widget in self.winfo_children():
             widget.destroy()

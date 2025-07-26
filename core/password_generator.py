@@ -8,12 +8,24 @@ LOWER = string.ascii_lowercase
 NUMBERS = string.digits
 SYMBOLS = '~`!@#$%^&*()_-+={[}]|\\:;"\'<,>.?/'
 
-def gen_pass(length, use_symbols, use_numbers):
-    char_pool = list(UPPER + LOWER)
+def gen_pass(length, use_symbols, use_numbers, custom_symbols=None, use_big_letters=True, use_small_letters=True):
+    char_pool = []
+
     if use_symbols:
-        char_pool += list(SYMBOLS)
+        symbols_to_use = custom_symbols if custom_symbols is not None else SYMBOLS
+        char_pool += list(symbols_to_use)
+
     if use_numbers:
         char_pool += list(NUMBERS)
 
-    password = ''.join(random.choice(char_pool) for _ in range(length))
-    return password
+    if use_big_letters:
+        char_pool += list(UPPER)
+    
+    if use_small_letters:
+        char_pool += list(LOWER)
+
+    if not char_pool:
+        return ""
+
+    return ''.join(random.choice(char_pool) for _ in range(length))
+
