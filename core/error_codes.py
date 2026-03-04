@@ -1,4 +1,3 @@
-# error_codes.py
 PASSWORD_GENERATOR_PREFIX = "[PASSWORD GENERATOR]:"
 
 RED = "\033[91m"

@@ -36,7 +36,7 @@ def load_data(fernet: Fernet):
         decrypted = fernet.decrypt(encrypted)
         return json.loads(decrypted.decode())
     except Exception as e:
-        print(f"❌ Failed to load data: {e}")
+        print(f"Failed to load data: {e}")
         return {}
 
 def save_data(fernet: Fernet, data: dict):

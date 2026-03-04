@@ -26,6 +26,32 @@ def gen_pass(length, use_symbols, use_numbers, custom_symbols=None, use_big_lett
 
     if not char_pool:
         return ""
+ 
+    password_chars = []
 
-    return ''.join(random.choice(char_pool) for _ in range(length))
+    # First character: prefer uppercase if allowed, else lowercase, else any
+    if use_big_letters:
+        first_char = random.choice(UPPER)
+    elif use_small_letters:
+        first_char = random.choice(LOWER)
+    else:
+        first_char = random.choice(char_pool)
 
+    password_chars.append(first_char)
+
+    # Fill the rest of the password
+    while len(password_chars) < length:
+        r = random.random()
+
+        if use_symbols and r < 0.2:  # 20% chance to pick symbol
+            symbol_choice = custom_symbols if custom_symbols else SYMBOLS
+            password_chars.append(random.choice(symbol_choice))
+        elif use_numbers and r < 0.35:  # additional 35% chance to pick number
+            password_chars.append(random.choice(NUMBERS))
+        else:
+            password_chars.append(random.choice(UPPER + LOWER if use_big_letters and use_small_letters else
+                                               UPPER if use_big_letters else
+                                               LOWER if use_small_letters else
+                                               char_pool))
+
+    return ''.join(password_chars)
