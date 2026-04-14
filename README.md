@@ -81,4 +81,3 @@ python main.py
 - If the vault files are corrupted, the application will attempt to handle errors and show a warning.
 
 
->>>>>>> dev
