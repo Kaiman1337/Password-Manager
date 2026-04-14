@@ -9,6 +9,7 @@ from core import (
     gen_pass,
 )
 from PIL import Image, ImageTk
+import uuid
 
 # Theme constants
 LABEL_FG_COLOR = "#EEE"
@@ -125,6 +126,10 @@ class PasswordManagerUI(tk.Tk):
             self.fernet = get_fernet(password)
             self.data = load_data(self.fernet)
             if isinstance(self.data, dict):
+                # Add id to existing accounts if missing
+                for name, acc in self.data.items():
+                    if "id" not in acc:
+                        acc["id"] = str(uuid.uuid4())
                 self.show_main_app()
             else:
                 messagebox.showerror("Error", "Vault data is corrupted.")
@@ -178,7 +183,8 @@ class PasswordManagerUI(tk.Tk):
             "email": email,
             "site_url": site_url,
             "description": description,
-            "password": password
+            "password": password,
+            "id": str(uuid.uuid4())
         }
         
         save_data(self.fernet, self.data)
@@ -348,6 +354,7 @@ class PasswordManagerUI(tk.Tk):
         # State variables
         self.edit_mode = False
         self.selected_account_name = None
+        self.editing_account = None
         self.detail_widgets = {}
 
         fields = ["Account Name", "Login", "Email", "Site URL", "Description", "Password"]
@@ -508,14 +515,22 @@ class PasswordManagerUI(tk.Tk):
                     make_text_readonly(widget)
 
         def toggle_edit():
+            # Check if an account is selected
+            current_selection = self.search_results_listbox.curselection()
+            if not current_selection:
+                return
+            
             self.edit_mode = not self.edit_mode
             
             # Get CURRENT selected account name from listbox
-            current_selection = self.search_results_listbox.curselection()
-            if current_selection:
-                current_account_name = self.search_results_listbox.get(current_selection[0])
+            current_account_name = self.search_results_listbox.get(current_selection[0])
+            
+            if self.edit_mode:
+                self.editing_account = current_account_name
+                self.editing_id = self.data[current_account_name].get("id")
             else:
-                current_account_name = None
+                self.editing_account = None
+                self.editing_id = None
             
             # Only change editability
             for widget in self.detail_widgets.values():
@@ -531,11 +546,11 @@ class PasswordManagerUI(tk.Tk):
             
             if self.edit_mode:
                 self.edit_button.config(text="Cancel", bg="orange")
-                self.save_button.config(state="normal")
+                self.save_button.config(state="normal", bg="green")
                 self.delete_button.config(state="normal")
             else:
                 self.edit_button.config(text="Edit", bg=BTN_COLOR)
-                self.save_button.config(state="disabled")
+                self.save_button.config(state="disabled", bg=BTN_COLOR)
                 self.delete_button.config(state="disabled")
                 
                 # Update selected name after cancel
@@ -543,6 +558,8 @@ class PasswordManagerUI(tk.Tk):
 
         # Filter accounts
         def filter_accounts(*args):
+            if self.edit_mode:
+                return  # Don't filter during edit mode to avoid losing changes
             query = self.search_account_var.get().lower()
             self.search_results_listbox.delete(0, tk.END)
             for name, info in self.data.items():
@@ -558,6 +575,9 @@ class PasswordManagerUI(tk.Tk):
             selection = self.search_results_listbox.curselection()
             if selection:
                 update_detail_widgets(self.search_results_listbox.get(selection[0]))
+                self.edit_button.config(state="normal")
+            else:
+                self.edit_button.config(state="disabled")
 
         def on_tab(event):
             lb = self.search_results_listbox
@@ -573,15 +593,18 @@ class PasswordManagerUI(tk.Tk):
             return "break"
 
         def save_changes():
-            if not self.edit_mode:
+            if not self.edit_mode or not self.editing_id:
                 return
             
-            # Get CURRENT account from listbox
-            selection = self.search_results_listbox.curselection()
-            if not selection:
+            # Find the account by id
+            old_name = None
+            for name, acc in self.data.items():
+                if acc.get("id") == self.editing_id:
+                    old_name = name
+                    break
+            if not old_name:
                 return
             
-            old_name = self.search_results_listbox.get(selection[0])
             new_name = self.detail_widgets["Account Name"].get("1.0", tk.END).strip()
             
             if not new_name:
@@ -602,6 +625,20 @@ class PasswordManagerUI(tk.Tk):
             save_data(self.fernet, self.data)
             toggle_edit()
             filter_accounts()
+            
+            # Find the saved account name by id and select it
+            saved_name = None
+            for name, acc in self.data.items():
+                if acc.get("id") == self.editing_id:
+                    saved_name = name
+                    break
+            if saved_name:
+                for i in range(self.search_results_listbox.size()):
+                    if self.search_results_listbox.get(i) == saved_name:
+                        self.search_results_listbox.selection_set(i)
+                        self.search_results_listbox.see(i)
+                        update_detail_widgets(saved_name)
+                        break
 
         def delete_account():
             if self.selected_account_name:
@@ -616,7 +653,7 @@ class PasswordManagerUI(tk.Tk):
         btn_frame.pack(pady=20)
         
         self.edit_button = tk.Button(btn_frame, text="Edit", command=toggle_edit,
-                                bg=BTN_COLOR, fg=LABEL_FG_COLOR, font=FONT, border=0)
+                                bg=BTN_COLOR, fg=LABEL_FG_COLOR, font=FONT, border=0, state="disabled")
         self.edit_button.pack(side="left", padx=10)
         
         self.save_button = tk.Button(btn_frame, text="Save", command=save_changes,
