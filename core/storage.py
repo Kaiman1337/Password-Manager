@@ -4,8 +4,9 @@ import hashlib
 from cryptography.fernet import Fernet
 from core.encryption import get_fernet
 
-VAULT_FILE = "vault.dat"
-MASTER_FILE = "vault.enc"
+DIR_PATH = "./db/"
+VAULT_FILE = DIR_PATH + "vault.dat"
+MASTER_FILE = DIR_PATH + "vault.enc"
 
 def hash_master_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
